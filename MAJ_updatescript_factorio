@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+export TERM=${TERM:-dumb}
+          
+    function usage(){
+            printf "Ce script vous permet de télécharger et mettre à jour votre serveur Factorio.\n"
+
+    }
+
+
+
+
+        if ps ax | grep -v grep | grep -v -i SCREEN | grep factorio > /dev/null
+        then
+				clear
+                echo "Le serveur Factorio est en cour d'utilisation" ;
+                sleep 1
+                echo "Information des joueurs et arret du serveur" ;
+                sudo screen -dmS factorio /etc/init.d/Factorio stop
+                sleep 5
+        else
+                echo "Le serveur est Offline."
+        fi
+
+
+
+
+sleep 4
+		echo "étape 1 : information des joueurs réussi" ;
+        sleep 2
+				 
+    if [ $# -ne 1 ]
+    then
+            usage
+            exit 1
+    fi
+     
+    FACTORIO_VERSION=$1
+    FACTORIO_PATH="/home/Factorio"
+	FACTORIO_UPDATES_PATH="/home/Factorio/UPDATES"
+     
+    if [ -d $FACTORIO_UPDATES_PATH ]
+    then
+            cd $FACTORIO_UPDATES_PATH
+    else
+            printf "FACTORIO_PATH n'est pas un répertoire éxistant!"
+			
+            exit 1
+    fi
+     
+	echo "étape 2 : Déplacement des vieux fichiers en cours!" ;
+	sleep 3
+	sudo rm -R $FACTORIO_UPDATES_PATH/OLD/*
+	mv $FACTORIO_PATH/bin $FACTORIO_UPDATES_PATH/OLD/bin.old
+	mv $FACTORIO_PATH/data $FACTORIO_UPDATES_PATH/OLD/data.old
+	
+	echo "étape 2 : Déplacement des vieux fichiers Terminé !" ;
+	
+	sleep 5
+	
+	echo "étape 3 : Téléchargement de la nouvelle version !" ;
+	sleep 1
+	wget "https://www.factorio.com/get-download/latest/headless/linux64" && mv "linux64" "Factorio_"$1".tar"
+	
+	echo "étape 4 : Extraction des fichiers" ;
+	tar xf Factorio_$1.tar
+	
+	echo "étape 4 : Extraction des fichiers Terminé !" ;
+	
+	sleep 5
+	
+	echo "étape 5 : installation des nouveaux fichiers" ;
+	
+	cd factorio
+	rm config-path.cfg
+	
+	mv "bin" $FACTORIO_PATH
+	mv "data" $FACTORIO_PATH
+	
+	mv $FACTORIO_UPDATES_PATH"/Factorio_"$1".tar" $FACTORIO_UPDATES_PATH"/Versions/Factorio_"$1".tar"
+		
+	echo "étape 5 : installation des nouveaux fichiers terminé!" ;
+	sleep 2
+
+	echo "REDDEMARRAGE DU SERVEUR ..."
+	
+	sudo screen -dmS factorio /etc/init.d/Factorio start
+	sleep 5
+    
+   	echo "Vérification du démmarage" ;
+    sleep 3
+    
+            if ps ax | grep -v grep | grep -v -i SCREEN | grep factorio > /dev/null
+        then
+				echo "Démmarrage réussi! Bon jeu !" ;
+                sleep 3
+        else
+                echo "Démmarrage échoué."
+        fi
+     
+    exit 0
+
